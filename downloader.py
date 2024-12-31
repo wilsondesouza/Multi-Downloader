@@ -1,6 +1,39 @@
 # Desenvolvido por @wilsonsouza https://github.com/wilsondesouza
+
 # Se curtiu o trabalho ou se a aplicação lhe foi útil, favorite o repositório
 
+"""
+Aplicativo Multi Downloader
+Este script fornece uma interface gráfica de usuário (GUI) para baixar vídeos de várias plataformas, como YouTube, Instagram, Twitter e Facebook. 
+Ele utiliza as bibliotecas `yt_dlp` e `instaloader` para baixar conteúdo e `customtkinter` para a GUI.
+Funções:
+    update_progress_bar(progress, value):
+        Atualiza a barra de progresso com o valor fornecido.
+    reset_progress_bar(progress, delay=3):
+        Reseta a barra de progresso para 0 após um atraso especificado.
+    log_message(message):
+        Adiciona uma mensagem à área de log na GUI.
+    sanitize_twitter_url(url):
+        Sanitiza uma URL do Twitter para garantir que esteja no formato correto para download.
+    download_youtube(url, format_choice):
+        Baixa um vídeo do YouTube no formato especificado (mp3 ou mp4).
+    download_instagram(url):
+        Baixa um post do Instagram.
+    download_twitter(url, format_choice):
+        Baixa um vídeo do Twitter no formato especificado (mp3 ou mp4).
+    download_facebook(url, format_choice):
+        Baixa um vídeo do Facebook no formato especificado (mp3 ou mp4).
+    download_file():
+        Determina a função de download apropriada a ser chamada com base na URL fornecida.
+Configuração da GUI:
+    A GUI é configurada usando a biblioteca `customtkinter`. Ela inclui:
+        - Um rótulo de título
+        - Um campo de entrada para a URL
+        - Um botão de download
+        - Botões de rádio para selecionar o formato de download (mp3 ou mp4)
+        - Uma barra de progresso
+        - Uma área de log para exibir o histórico de downloads e mensagens
+"""
 
 # Importações nativas
 import os
@@ -172,6 +205,48 @@ def download_twitter(url, format_choice):
         log_message(f"Erro ao baixar o vídeo do Twitter: {e}")  # Adiciona mensagem de erro ao log
         messagebox.showerror("Erro", f"Erro ao baixar o vídeo do Twitter: {e}")  # Mostra mensagem de erro
 
+def download_facebook(url, format_choice):
+    try:
+        facebook_dir = os.path.join(base_dir, 'downloads-Facebook')  # Define o diretório de download
+        os.makedirs(facebook_dir, exist_ok=True)  # Cria o diretório se não existir
+        
+        start_time = time.time()  # Marca o tempo de início do download
+        
+        # Função de callback para atualizar a barra de progresso
+        def progress_hook(d):
+            if d['status'] == 'downloading':  # Verifica se o status é 'downloading'
+                total_bytes = d.get('total_bytes') or d.get('total_bytes_estimate')  # Obtém o total de bytes
+                if total_bytes:
+                    percentage = d['downloaded_bytes'] / total_bytes * 100  # Calcula a porcentagem de download
+                    update_progress_bar(progress, percentage)  # Atualiza a barra de progresso
+        
+        # Opções de configuração para o yt_dlp
+        ydl_opts = {
+            'outtmpl': os.path.join(facebook_dir, '%(title)s_' + format_choice + '.%(ext)s'), # Define o padrão de nome do arquivo de saída, incluindo o sufixo do formato escolhido (mp3 ou mp4)
+            'format': 'bestaudio/best' if format_choice == 'mp3' else 'bestvideo+bestaudio/best', # Define o formato de download: 'bestaudio/best' para mp3, 'bestvideo+bestaudio/best' para mp4
+            'progress_hooks': [progress_hook], # Adiciona a função de callback para atualizar a barra de progresso durante o download
+            'postprocessors': [{ # Configurações para pós-processamento: extrai o áudio e converte para mp3 se o formato escolhido for mp3
+                'key': 'FFmpegExtractAudio', # Utiliza o FFmpeg para extrair o áudio
+                'preferredcodec': 'mp3', # Define o codec de áudio como mp3
+                'preferredquality': '192', # Define a qualidade do áudio como 192 kbps
+            }] if format_choice == 'mp3' else []
+        }
+        
+        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+            info_dict = ydl.extract_info(url, download=True)  # Extrai informações e baixa o vídeo
+            video_title = info_dict.get('title', 'Vídeo')  # Obtém o título do vídeo
+            
+        end_time = time.time()  # Marca o tempo de término do download
+        elapsed_time = end_time - start_time  # Calcula o tempo decorrido
+        
+        log_message(f"Vídeo '{video_title}' do Facebook baixado em {elapsed_time:.2f} segundos!")  # Adiciona mensagem ao log
+        messagebox.showinfo("Sucesso", f"Download do vídeo '{video_title}' concluído com sucesso!")  # Mostra mensagem de sucesso
+        threading.Thread(target=reset_progress_bar, args=(progress,)).start()  # Reseta a barra de progresso após alguns segundos
+    
+    except Exception as e:
+        log_message(f"Erro ao baixar o vídeo do Facebook: {e}")  # Adiciona mensagem de erro ao log
+        messagebox.showerror("Erro", f"Erro ao baixar o vídeo do Facebook: {e}")  # Mostra mensagem de erro
+
 # Função para determinar qual método de download usar com base na URL
 def download_file():
     url = url_var.get()  # Obtém a URL do campo de entrada
@@ -189,6 +264,8 @@ def download_file():
         threading.Thread(target=download_twitter, args=(sanitized_url, format_choice)).start()
     elif 'instagram.com' in parsed_url.netloc:
         threading.Thread(target=download_instagram, args=(url,)).start()
+    elif 'facebook.com' in parsed_url.netloc or 'fb.com' in parsed_url.netloc:
+        threading.Thread(target=download_facebook, args=(url, format_choice)).start()
     else:
         messagebox.showerror("Erro", "URL não suportada")  # Mostra mensagem de erro se a URL não for suportada
 
