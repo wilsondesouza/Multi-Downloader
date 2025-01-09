@@ -2,7 +2,7 @@
 
 <div align="center">
 
-![Badge em Desenvolvimento](http://img.shields.io/static/v1?label=STATUS&message=FINALIZADO&color=GREEN&style=for-the-badge) [![](http://img.shields.io/static/v1?label=BAIXAR&message=EXECUTÁVEL&color=blue&style=for-the-badge)](https://www.mediafire.com/file/6rs5xiw6l5did3f/Multi-Downloader.rar/file)
+![Badge em Desenvolvimento](http://img.shields.io/static/v1?label=STATUS&message=FINALIZADO&color=GREEN&style=for-the-badge) [![](http://img.shields.io/static/v1?label=BAIXAR&message=EXECUTÁVEL&color=blue&style=for-the-badge)](https://www.mediafire.com/file/np5zvv0hqqjdmgh/Multi-Downloader.rar/file)
 
 </div>
 
@@ -16,6 +16,7 @@ Bem-vindo ao **Multi Downloader**! Este projeto é uma aplicação gráfica que 
 - **Download de posts do Instagram** 📸
 - **Download de vídeos do Twitter** 🐦
 - **Download de vídeos do Facebook** 📘
+- **Todos (exceto Instagram) em formato de áudio ou vídeo com as qualidades disponíveis para cada vídeo**
 
 ---
 
