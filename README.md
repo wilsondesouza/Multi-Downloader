@@ -21,8 +21,11 @@ Aplicativo desktop em Python para baixar mídia acessível publicamente a partir
 
 ## Arquitetura
 
-- `multi_downloader/service.py`: validação e roteamento de URLs, prévia, opções, retentativas e execução dos downloads.
-- `multi_downloader/ui.py`: interface CustomTkinter, fila, preferências, histórico e diálogos. A rede e os downloads são executados em threads de trabalho; atualizações da interface passam por uma fila de eventos.
+- `multi_downloader/service.py`: fachada pública estável para as operações de mídia.
+- `multi_downloader/media_models.py`, `media_urls.py` e `media_downloads.py`: contratos, validação de URLs e execução das prévias/downloads.
+- `multi_downloader/system_checks.py`: verificações do FFmpeg e consulta de versões.
+- `multi_downloader/ui.py`: composição e ciclo de vida da aplicação; mantém a API `main()` usada pelos pontos de entrada.
+- `multi_downloader/ui_components/`: interface separada por janela/widgets, diálogos, fila, eventos de download, histórico e consulta de qualidade. A rede e os downloads executam em threads de trabalho; atualizações da interface passam por uma fila de eventos.
 - `multi_downloader/persistence.py`: armazenamento local de preferências e histórico em SQLite.
 - `multi_downloader/diagnostics.py`: sanitização e exportação voluntária de informações de diagnóstico.
 - `downloader.py`: ponto de entrada para desenvolvimento e empacotamento.

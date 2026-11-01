@@ -1,0 +1,2 @@
+_DEFAULT_QUALITY_OPTIONS = ["best", "1080p", "720p", "480p", "360p"]
+_MAX_BATCH_SIZE = 50
