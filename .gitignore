@@ -52,6 +52,7 @@ coverage.xml
 .pytest_cache/
 cover/
 teste/
+tests/
 
 # Translations
 *.mo
@@ -161,3 +162,6 @@ Thumbs.db
 executavel.py
 *.exe
 assets/images/icon.png
+
+!executavel.py
+!executavel.spec

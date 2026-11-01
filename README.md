@@ -1,97 +1,80 @@
-# Multi Downloader 📥
+# Multi-Downloader
 
-<div align="center">
+Aplicativo desktop em Python para baixar mídia acessível publicamente a partir de links do YouTube, Instagram, X/Twitter e Facebook. A interface usa CustomTkinter; `yt-dlp` atende YouTube, X/Twitter e Facebook, e Instaloader atende posts de vídeo do Instagram.
 
-![Badge em Desenvolvimento](http://img.shields.io/static/v1?label=STATUS&message=FINALIZADO&color=GREEN&style=for-the-badge) [![](http://img.shields.io/static/v1?label=BAIXAR&message=EXECUTÁVEL&color=blue&style=for-the-badge)](https://www.mediafire.com/file/np5zvv0hqqjdmgh/Multi-Downloader.rar/file)
+> Use a aplicação somente para conteúdo que você tem autorização para baixar. Respeite direitos autorais, termos das plataformas e leis aplicáveis. A aplicação não contorna autenticação, DRM ou controles de acesso.
 
-</div>
+## Funcionalidades
 
-Bem-vindo ao **Multi Downloader**! Este projeto é uma aplicação gráfica que permite baixar vídeos de várias plataformas populares, como YouTube, Instagram, Twitter e Facebook, utilizando a biblioteca `customtkinter` para a interface gráfica.
+- Baixa vídeos em MP4 e extrai áudio em MP3 nas plataformas compatíveis com `yt-dlp`.
+- Baixa vídeos de posts/reels/IGTV públicos do Instagram em MP4. O Instagram não oferece opções de formato ou qualidade.
+- Consulta título, duração e resoluções disponíveis antes do download, quando a plataforma fornece esses metadados.
+- Mantém uma fila sequencial e aceita lotes de até 50 links, sem concorrência entre downloads.
+- Permite pausar, retomar e cancelar operações de `yt-dlp`. O Instaloader não oferece pausa ou cancelamento seguro durante a transferência; nesse caso, é possível interromper a fila após a mídia atual.
+- Seleciona o diretório de destino, mantém subpastas por plataforma e abre o local do arquivo concluído.
+- Pede confirmação antes de substituir arquivos em plataformas atendidas por `yt-dlp`. No Instagram, arquivos existentes são ignorados porque o Instaloader não oferece substituição segura.
+- Salva preferências e histórico persistente em SQLite. URLs de origem e fila pendente não são armazenadas; ao reiniciar, downloads em estados transitórios são marcados como interrompidos.
+- Permite configurar qualidade, tentativas automáticas limitadas e consulta manual/de inicialização ao PyPI. Atualizações de dependências nunca são instaladas automaticamente.
+- Exporta um relatório de diagnóstico revisável que exclui URLs, query strings, nomes de usuário e caminhos locais.
+- Informa se o FFmpeg está disponível; FFmpeg é necessário para extrair MP3 e combinar faixas de áudio e vídeo quando necessário.
+- Oferece colagem da área de transferência e atalhos: `Enter` para adicionar o link e `Ctrl+Enter` para iniciar a ação pelo campo de URL.
 
----
+## Arquitetura
 
-## Funcionalidades 🚀
+- `multi_downloader/service.py`: validação e roteamento de URLs, prévia, opções, retentativas e execução dos downloads.
+- `multi_downloader/ui.py`: interface CustomTkinter, fila, preferências, histórico e diálogos. A rede e os downloads são executados em threads de trabalho; atualizações da interface passam por uma fila de eventos.
+- `multi_downloader/persistence.py`: armazenamento local de preferências e histórico em SQLite.
+- `multi_downloader/diagnostics.py`: sanitização e exportação voluntária de informações de diagnóstico.
+- `downloader.py`: ponto de entrada para desenvolvimento e empacotamento.
+- `executavel.spec`: configuração do PyInstaller.
 
-- **Download de vídeos do YouTube** 🎥
-- **Download de posts do Instagram** 📸
-- **Download de vídeos do Twitter** 🐦
-- **Download de vídeos do Facebook** 📘
-- **Todos (exceto Instagram) em formato de áudio ou vídeo com as qualidades disponíveis para cada vídeo**
+## Requisitos
 
----
+- Python 3.10 ou superior.
+- Dependências Python de [`requirements.txt`](./requirements.txt).
+- FFmpeg disponível no `PATH` para extração de MP3 e combinação de faixas quando necessário.
+- Tkinter instalado com a distribuição Python. A instalação do Tkinter varia entre sistemas operacionais.
 
-## Como Usar 🛠️
+## Instalação e execução
 
-1. **Clone o repositório**:
-    ```sh
-    git clone https://github.com/wilsondesouza/Multi-Downloader.git
-    cd Multi-Downloader
-    ```
+```powershell
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+python -m pip install -r requirements.txt
+python downloader.py
+```
 
-2. **Instale as dependências**:
-    ```sh
-    pip install -r requirements.txt
-    ```
+No macOS/Linux, ative o ambiente virtual com `source .venv/bin/activate`.
 
-3. **Instale o `ffmpeg`**:
-    [Acesse](https://www.ffmpeg.org/download.html) o site e baixe a versão estável mais recente condizente com seu sistema operacional e adicione-o ao path nas variáves de ambiente.
-    *Abra o CMD e digite o comando `ffmpeg -version` para conferir se ele foi reconhecido*
+## Dados locais e privacidade
 
-4. **Execute a aplicação**:
-    ```sh
-    python downloader.py
-    ```
+O SQLite fica no diretório de dados da aplicação do usuário: `%LOCALAPPDATA%\MultiDownloader` no Windows, `~/Library/Application Support/MultiDownloader` no macOS ou `$XDG_STATE_HOME/multi-downloader` (por padrão `~/.local/state/multi-downloader`) no Linux. O histórico não tem expiração automática. Ele registra plataforma, título, formato, estado, caminho local do arquivo, tentativas e código de erro; não guarda a URL original. A fila não é restaurada depois de fechar o aplicativo.
 
-**Observações:** Ao executar o programa, inserir a URL e fazer o download do vídeo, será criada automaticamente uma subpasta no diretório raiz onde se encontra o aplicativo, de acordo com a origem: `downloads-Youtube` para vídeos do Youtube, `downloads-Instagram` para vídeos do Instagram, `downloads-Twitter` para vídeos do Twitter e `downloads-Facebook` para vídeos do Facebook.
+Antes de exportar, o relatório de diagnóstico pode ser revisado na interface. O arquivo só é salvo após uma ação explícita do usuário.
 
----
+## Testes
 
-## Interface Gráfica 🖥️
+```powershell
+python -m unittest discover -v
+```
 
-A interface gráfica é construída utilizando [customtkinter](https://customtkinter.tomschimansky.com/) e possui os seguintes componentes:
+Os testes não acessam as plataformas: chamadas de rede e bibliotecas de download são isoladas com mocks e diretórios temporários.
 
-- **Campo de entrada para URL**: Insira a URL do vídeo que deseja baixar.
-- **Botão de Download**: Inicia o download do vídeo/post.
-- **Barra de Progresso**: Mostra o progresso do download.
-- **Área de Log**: Exibe o histórico de downloads e mensagens de erro/sucesso.
+## Gerar executável no Windows
 
----
+Instale o PyInstaller no mesmo ambiente e execute:
 
-## Dependências 📦
+```powershell
+python -m pip install pyinstaller
+pyinstaller executavel.spec
+```
 
-- [customtkinter](https://customtkinter.tomschimansky.com/): Biblioteca para criar interfaces gráficas modernas.
-- [yt_dlp](https://github.com/yt-dlp/yt-dlp): Biblioteca para download de vídeos do YouTube.
-- [instaloader](https://instaloader.github.io/): Biblioteca para download de posts do Instagram.
-- [tkinter](https://docs.python.org/pt-br/3.13/library/tkinter.html): Biblioteca padrão do Python para interfaces gráficas.
+O executável é gerado em `dist`. O `.spec` aponta para `downloader.py`, usa `assets/images/icon.ico` no arquivo executável e inclui PNG/ICO no pacote. A janela usa `assets/images/icon.png`; no Windows, o `.ico` também é aplicado à janela e a aplicação define um AppUserModelID para a barra de tarefas.
 
----
+## Revisão técnica e limitações conhecidas
 
-## Funções Principais 🔍
+Os pontos de entrada antigos foram consolidados no mesmo serviço, a validação de domínio rejeita hosts falsificados, e chamadas de rede não bloqueiam a thread da GUI. A disponibilidade e os formatos suportados dependem das plataformas e das bibliotecas externas e podem mudar. Consulte [`KNOWN_ISSUES.md`](./KNOWN_ISSUES.md) para limitações restantes e a investigação pendente sobre downloads MP3→MP4 subsequentes no X/Twitter.
 
-### `download_youtube(url)`
-Baixa vídeos do YouTube.
+## Licença
 
-### `download_instagram(url)`
-Baixa posts do Instagram.
-
-### `download_twitter(url)`
-Baixa vídeos do Twitter.
-
-### `download_file(url)`
-Determina qual método de download usar com base na URL fornecida.
-
----
-
-## Contribuição 🤝
-
-Contribuições são bem-vindas! Sinta-se à vontade para abrir issues e pull requests.
-
----
-
-## Licença 📄
-
-Este projeto está licenciado sob a MIT License.
-
----
-
-Feito na madrugada por [Wilson Souza](https://github.com/wilsondesouza)
+Distribuído sob a licença MIT. Consulte [`LICENSE.txt`](./LICENSE.txt).

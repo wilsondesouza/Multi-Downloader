@@ -1,3 +1,4 @@
 customtkinter
+packaging
 yt-dlp
 instaloader
